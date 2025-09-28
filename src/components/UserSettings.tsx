@@ -4,10 +4,12 @@ import { Button } from './ui/button';
 import { Switch } from './ui/switch';
 import { Label } from './ui/label';
 import { Separator } from './ui/separator';
-import { User, LogOut, Settings } from 'lucide-react';
+import { User, LogOut, Settings, Mail, Tag } from 'lucide-react'; // Added Mail and Tag icons
 
 interface UserSettingsProps {
   username: string;
+  email: string; // Added email
+  role: string; // Added role
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
   onLogout: () => void;
@@ -17,6 +19,8 @@ interface UserSettingsProps {
 
 export function UserSettings({ 
   username, 
+  email,
+  role,
   isDarkMode, 
   onToggleDarkMode, 
   onLogout, 
@@ -55,7 +59,18 @@ export function UserSettings({
                 <User className="h-4 w-4" />
                 <span className="font-medium">{username}</span>
               </div>
-              <p className="text-sm text-muted-foreground">Logged In</p>
+              {email && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Mail className="h-4 w-4" />
+                  <span>{email}</span>
+                </div>
+              )}
+              {role && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Tag className="h-4 w-4" />
+                  <span>{role}</span>
+                </div>
+              )}
             </div>
             
             <Button 

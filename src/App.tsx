@@ -13,58 +13,87 @@ import { RejectionTrends } from './components/RejectionTrends';
 import { Toaster } from './components/ui/sonner';
 import { toast } from 'sonner';
 
+import { fetchWithAuth, setTokens, clearTokens, getAccessToken } from './utils/api';
+
 interface User {
+  id: number;
   username: string;
-  role: string;
+  email: string;
+  role: 'NORMAL' | 'ADMIN' | 'SUPER';
 }
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('home');
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModal] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Check for saved login state on component mount
   useEffect(() => {
-    const savedUser = localStorage.getItem('currentUser');
-    const savedTheme = localStorage.getItem('darkMode');
-    
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-    
-    if (savedTheme) {
-      const isDark = JSON.parse(savedTheme);
-      setIsDarkMode(isDark);
-      document.documentElement.classList.toggle('dark', isDark);
-    }
+    const initializeAuth = async () => {
+      const token = getAccessToken();
+      const savedTheme = localStorage.getItem('darkMode');
+
+      if (token) {
+        try {
+          const response = await fetchWithAuth('/users/profile/');
+          if (response.ok) {
+            const userData = await response.json();
+            setUser(userData);
+          } else {
+            clearTokens();
+            console.error('Failed to fetch user profile:', response.statusText);
+          }
+        } catch (error) {
+          clearTokens();
+          console.error('Error fetching user profile:', error);
+        }
+      }
+
+      if (savedTheme) {
+        const isDark = JSON.parse(savedTheme);
+        setIsDarkMode(isDark);
+        document.documentElement.classList.toggle('dark', isDark);
+      }
+    };
+    initializeAuth();
   }, []);
 
-  const handleLogin = (username: string, password: string) => {
-    // Mock authentication - in real app, this would call an API
-    const mockUsers = [
-      { username: 'admin', password: 'admin123', role: 'Administrator' },
-      { username: 'testuser', password: 'test123', role: 'User' },
-      { username: 'manager', password: 'manager123', role: 'Manager' }
-    ];
+  const handleLogin = async (username: string, password: string) => {
+    try {
+      const response = await fetchWithAuth('/auth/login/', {
+        method: 'POST',
+        body: JSON.stringify({ username, password }),
+      });
 
-    const foundUser = mockUsers.find(u => u.username === username && u.password === password);
-    
-    if (foundUser) {
-      const newUser = { username: foundUser.username, role: foundUser.role };
-      setUser(newUser);
-      localStorage.setItem('currentUser', JSON.stringify(newUser));
-      setIsLoginModalOpen(false);
-      toast.success(`Welcome back, ${foundUser.username}!`);
-    } else {
-      toast.error('Invalid username or password');
+      if (response.ok) {
+        const data = await response.json();
+        setTokens(data.access, data.refresh);
+        
+        // Fetch user profile after successful login
+        const profileResponse = await fetchWithAuth('/users/profile/');
+        if (profileResponse.ok) {
+          const userData = await profileResponse.json();
+          setUser(userData);
+          setIsLoginModal(false);
+          toast.success(`Welcome back, ${userData.username}!`);
+        } else {
+          throw new Error('Failed to fetch user profile after login.');
+        }
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.detail || 'Invalid username or password');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error('An unexpected error occurred during login.');
     }
   };
 
   const handleLogout = () => {
     setUser(null);
-    localStorage.removeItem('currentUser');
+    clearTokens();
     setIsSettingsOpen(false);
     toast.success('Logged out successfully');
   };
@@ -83,8 +112,9 @@ export default function App() {
       <div className="container mx-auto p-6">
         <Header
           username={user?.username}
+          role={user?.role} // Pass user role to Header
           onSettingsClick={() => setIsSettingsOpen(!isSettingsOpen)}
-          onLoginClick={() => setIsLoginModalOpen(true)}
+          onLoginClick={() => setIsLoginModal(true)}
           isLoggedIn={isLoggedIn}
         />
 
@@ -105,7 +135,7 @@ export default function App() {
             </TabsContent>
 
             <TabsContent value="configuration" className="mt-6">
-              <Configuration />
+              <Configuration userRole={user?.role} />
             </TabsContent>
 
             <TabsContent value="migration" className="mt-6">
@@ -134,7 +164,7 @@ export default function App() {
               <h2 className="text-2xl font-semibold">Welcome to Rings Dashboard</h2>
               <p className="text-muted-foreground">Please log in to access the production dashboard</p>
               <button
-                onClick={() => setIsLoginModalOpen(true)}
+                onClick={() => setIsLoginModal(true)}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Login to Continue
@@ -155,6 +185,8 @@ export default function App() {
 
         <UserSettings
           username={user?.username || ''}
+          email={user?.email || ''} // Pass user email to UserSettings
+          role={user?.role || ''} // Pass user role to UserSettings
           isDarkMode={isDarkMode}
           onToggleDarkMode={toggleDarkMode}
           onLogout={handleLogout}

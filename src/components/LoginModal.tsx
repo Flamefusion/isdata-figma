@@ -19,9 +19,6 @@ export function LoginModal({ isOpen, onClose, onLogin }: LoginModalProps) {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate login delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
     onLogin(username, password);
     setIsLoading(false);
     
@@ -89,7 +86,7 @@ export function LoginModal({ isOpen, onClose, onLogin }: LoginModalProps) {
             </Button>
           </div>
         </form>
-        
+
         <div className="text-center text-sm text-muted-foreground">
           Don't have an account?{' '}
           <button 
@@ -100,6 +97,7 @@ export function LoginModal({ isOpen, onClose, onLogin }: LoginModalProps) {
             Register
           </button>
         </div>
+        
       </DialogContent>
     </Dialog>
   );

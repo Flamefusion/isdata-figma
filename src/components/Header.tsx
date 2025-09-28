@@ -5,12 +5,13 @@ import { Database } from 'lucide-react';
 
 interface HeaderProps {
   username?: string;
+  role?: string; // Added role
   onSettingsClick: () => void;
   onLoginClick: () => void;
   isLoggedIn: boolean;
 }
 
-export function Header({ username, onSettingsClick, onLoginClick, isLoggedIn }: HeaderProps) {
+export function Header({ username, role, onSettingsClick, onLoginClick, isLoggedIn }: HeaderProps) {
   return (
     <div className="flex items-center justify-between mb-8">
       <div className="flex items-center gap-3">
@@ -35,7 +36,10 @@ export function Header({ username, onSettingsClick, onLoginClick, isLoggedIn }: 
                 {username?.charAt(0).toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
-            <span className="hidden sm:inline">{username}</span>
+            <div className="hidden sm:flex flex-col items-start">
+              <span className="text-sm font-medium">{username}</span>
+              {role && <span className="text-xs text-muted-foreground">{role}</span>}
+            </div>
           </Button>
         ) : (
           <Button onClick={onLoginClick}>

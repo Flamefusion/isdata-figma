@@ -2,40 +2,56 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { DatePicker } from './ui/date-picker';
 import { Label } from './ui/label';
-import { Button } from './ui/button';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
-import { Package, CheckCircle, XCircle, Clock, TrendingUp, Home as HomeIcon } from 'lucide-react';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { Package, CheckCircle, XCircle, Home as HomeIcon } from 'lucide-react';
 
-const ringLifecycleData = [
-  { name: 'Received', vqc: 1250, ft: 890 },
-  { name: 'Closed', vqc: 1100, ft: 750 },
-  { name: 'Pending', vqc: 150, ft: 140 }
+const vqcStatusData = [
+  { name: 'ACCEPTED', value: 950, color: '#10b981' },
+  { name: 'RT CONVERTED', value: 150, color: '#3b82f6' },
+  { name: 'WABI SABI', value: 50, color: '#f59e0b' },
+  { name: 'SCRAP', value: 20, color: '#ef4444' },
 ];
 
-const statusData = [
-  { name: 'VQC Accepted', value: 950, color: '#10b981' },
-  { name: 'VQC Rejected', value: 150, color: '#ef4444' },
-  { name: 'FT Accepted', value: 680, color: '#3b82f6' },
-  { name: 'FT Rejected', value: 70, color: '#f59e0b' }
+const ftStatusData = [
+  { name: 'ACCEPTED', value: 680, color: '#10b981' },
+  { name: 'RT CONVERTED', value: 70, color: '#3b82f6' },
+  { name: 'WABI SABI', value: 30, color: '#f59e0b' },
+  { name: 'SCRAP', value: 10, color: '#ef4444' },
 ];
 
-const sizeDistribution = [
-  { size: '6.0', received: 180, accepted: 150, rejected: 30 },
-  { size: '6.5', received: 220, accepted: 195, rejected: 25 },
-  { size: '7.0', received: 280, accepted: 260, rejected: 20 },
-  { size: '7.5', received: 250, accepted: 220, rejected: 30 },
-  { size: '8.0', received: 180, accepted: 155, rejected: 25 },
-  { size: '8.5', received: 140, accepted: 120, rejected: 20 }
+const rejectionReasonData = [
+    { reason: 'Scratched', count: 55 },
+    { reason: 'Bent', count: 40 },
+    { reason: 'Discoloration', count: 33 },
+    { reason: 'Wrong Size', count: 20 },
+    { reason: 'Other', count: 52 },
 ];
 
-const trendData = [
-  { date: 'Jan', received: 180, accepted: 160, rejected: 20 },
-  { date: 'Feb', received: 220, accepted: 195, rejected: 25 },
-  { date: 'Mar', received: 280, accepted: 250, rejected: 30 },
-  { date: 'Apr', received: 250, accepted: 220, rejected: 30 },
-  { date: 'May', received: 180, accepted: 155, rejected: 25 },
-  { date: 'Jun', received: 320, accepted: 290, rejected: 30 }
+const ringsBySizeData = [
+  { size: '5', count: 150 },
+  { size: '6', count: 250 },
+  { size: '7', count: 400 },
+  { size: '8', count: 350 },
+  { size: '9', count: 200 },
+  { size: '10', count: 100 },
 ];
+
+const ringsBySkuData = [
+    { sku: 'AG05', count: 50 },
+    { sku: 'AS05', count: 45 },
+    { sku: 'RT05', count: 30 },
+    { sku: 'MG05', count: 25 },
+    { sku: 'AA05', count: 20 },
+    { sku: 'BR05', count: 15 },
+];
+
+const moSummaryData = [
+    { mo: 'MO-001', ACCEPTED: 200, 'RT CONVERTED': 30, 'WABI SABI': 10, SCRAP: 5 },
+    { mo: 'MO-002', ACCEPTED: 180, 'RT CONVERTED': 25, 'WABI SABI': 8, SCRAP: 3 },
+    { mo: 'MO-003', ACCEPTED: 220, 'RT CONVERTED': 35, 'WABI SABI': 12, SCRAP: 7 },
+    { mo: 'MO-004', ACCEPTED: 150, 'RT CONVERTED': 20, 'WABI SABI': 5, SCRAP: 2 },
+];
+
 
 export function Home() {
   const [startDate, setStartDate] = useState<Date | undefined>(new Date(2025, 8, 22)); // September 22, 2025
@@ -122,53 +138,85 @@ export function Home() {
         </Card>
       </div>
 
-      {/* Ring Lifecycle Overview */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* VQC Ring Status Overview */}
+        <Card>
+          <CardHeader>
+            <CardTitle>VQC Ring Status Overview</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={vqcStatusData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                  label={({ name, value }) => `${name}: ${value}`}
+                >
+                  {vqcStatusData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* FT Ring Status Overview */}
+        <Card>
+          <CardHeader>
+            <CardTitle>FT Ring Status Overview</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={ftStatusData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                  label={({ name, value }) => `${name}: ${value}`}
+                >
+                  {ftStatusData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Rejection Reason Chart */}
       <Card>
         <CardHeader>
-          <CardTitle>Ring Lifecycle Overview</CardTitle>
+          <CardTitle>Rejection Reasons</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={ringLifecycleData}>
+            <BarChart data={rejectionReasonData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
+              <XAxis dataKey="reason" />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="vqc" fill="#10b981" name="VQC" />
-              <Bar dataKey="ft" fill="#3b82f6" name="FT" />
+              <Bar dataKey="count" fill="#ef4444" name="Total Rejections" />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Ring Status Overview */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Ring Status Overview</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={statusData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({ name, value }) => `${name}: ${value}`}
-                >
-                  {statusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
         {/* Rings by Size */}
         <Card>
           <CardHeader>
@@ -176,35 +224,54 @@ export function Home() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={sizeDistribution}>
+              <BarChart data={ringsBySizeData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="size" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="accepted" fill="#10b981" name="Accepted" />
-                <Bar dataKey="rejected" fill="#ef4444" name="Rejected" />
+                <Bar dataKey="count" fill="#8884d8" name="Count" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Rings by SKU */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Rings by SKU</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={ringsBySkuData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="sku" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="count" fill="#82ca9d" name="Count" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
 
-      {/* Monthly Trends */}
+      {/* MO Summary */}
       <Card>
         <CardHeader>
-          <CardTitle>Monthly Trends</CardTitle>
+          <CardTitle>MO Summary</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={trendData}>
+            <BarChart data={moSummaryData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
+              <XAxis dataKey="mo" />
               <YAxis />
               <Tooltip />
-              <Line type="monotone" dataKey="received" stroke="#8884d8" name="Received" />
-              <Line type="monotone" dataKey="accepted" stroke="#10b981" name="Accepted" />
-              <Line type="monotone" dataKey="rejected" stroke="#ef4444" name="Rejected" />
-            </LineChart>
+              <Legend />
+              <Bar dataKey="ACCEPTED" stackId="a" fill="#10b981" />
+              <Bar dataKey="RT CONVERTED" stackId="a" fill="#3b82f6" />
+              <Bar dataKey="WABI SABI" stackId="a" fill="#f59e0b" />
+              <Bar dataKey="SCRAP" stackId="a" fill="#ef4444" />
+            </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>

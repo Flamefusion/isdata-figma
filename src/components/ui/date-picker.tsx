@@ -1,5 +1,5 @@
 import React from 'react';
-import { format } from 'date-fns@3.6.0';
+import { format } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { Button } from './button';
 import { Calendar } from './calendar';

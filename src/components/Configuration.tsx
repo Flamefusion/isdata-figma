@@ -6,7 +6,7 @@ import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Separator } from './ui/separator';
 import { Database, Sheet, Key, Server, Upload, FileText } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 export function Configuration() {
   const [googleSheetsConfig, setGoogleSheetsConfig] = useState({

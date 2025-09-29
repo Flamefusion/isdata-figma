@@ -11,7 +11,7 @@ import { Report } from './components/Report';
 import { Search } from './components/Search';
 import { RejectionTrends } from './components/RejectionTrends';
 import { Toaster } from './components/ui/sonner';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 interface User {
   username: string;

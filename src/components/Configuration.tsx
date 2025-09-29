@@ -15,7 +15,8 @@ export function Configuration() {
     serviceAccountPath: '',
     vendorDataUrl: '',
     vqcDataUrl: '',
-    ftDataUrl: ''
+    ftDataUrl: '',
+    csDataUrl: ''
   });
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -172,7 +173,7 @@ export function Configuration() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="space-y-2">
               <Label htmlFor="vendorUrl">Vendor Data URL</Label>
               <Input
@@ -200,6 +201,16 @@ export function Configuration() {
                 placeholder="https://docs.google.com/spreadsheets/..."
                 value={googleSheetsConfig.ftDataUrl}
                 onChange={(e) => setGoogleSheetsConfig(prev => ({ ...prev, ftDataUrl: e.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="csUrl">CS Data URL</Label>
+              <Input
+                id="csUrl"
+                placeholder="https://docs.google.com/spreadsheets/..."
+                value={googleSheetsConfig.csDataUrl}
+                onChange={(e) => setGoogleSheetsConfig(prev => ({ ...prev, csDataUrl: e.target.value }))}
               />
             </div>
           </div>

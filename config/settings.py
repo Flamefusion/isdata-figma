@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'apps.users',
     'apps.database_manager',
     'apps.permissions',
+    'apps.etl',
 ]
 
 MIDDLEWARE = [
@@ -130,3 +131,35 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Google Sheets Configuration
+GOOGLE_SERVICE_ACCOUNT_FILE = config('GOOGLE_SERVICE_ACCOUNT_FILE', default='service-account.json')
+
+# Logging Configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': 'migration.log',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'apps.etl': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+        },
+    },
+}

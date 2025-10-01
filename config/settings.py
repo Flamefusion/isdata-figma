@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'apps.database_manager',
     'apps.permissions',
     'apps.etl',
+    'apps.configuration',
 ]
 
 MIDDLEWARE = [

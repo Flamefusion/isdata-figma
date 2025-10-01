@@ -85,3 +85,32 @@ const refreshAccessToken = async (): Promise<string | null> => {
     return null;
   }
 };
+
+export const startMigration = async (mode: 'FAST' | 'SLOW') => {
+  return fetchWithAuth('/etl/migration/start/', {
+    method: 'POST',
+    body: JSON.stringify({ mode }),
+  });
+};
+
+export const getMigrationHistory = async () => {
+  return fetchWithAuth('/etl/migration/history/');
+};
+
+export const getMigrationStatus = async () => {
+  return fetchWithAuth('/etl/migration/status/');
+};
+
+export const saveGoogleSheetsConfig = async (config: any) => {
+  return fetchWithAuth('/configuration/google-sheets/', {
+    method: 'POST',
+    body: JSON.stringify(config),
+  });
+};
+
+export const savePostgresConfig = async (config: any) => {
+  return fetchWithAuth('/configuration/postgresql/', {
+    method: 'POST',
+    body: JSON.stringify(config),
+  });
+};

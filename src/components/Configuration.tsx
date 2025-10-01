@@ -7,6 +7,7 @@ import { Textarea } from './ui/textarea';
 import { Separator } from './ui/separator';
 import { Database, Sheet, Key, Server, Upload, FileText } from 'lucide-react';
 import { toast } from 'sonner';
+import { saveGoogleSheetsConfig, savePostgresConfig } from '../utils/api';
 
 export function Configuration() {
   const [googleSheetsConfig, setGoogleSheetsConfig] = useState({
@@ -89,13 +90,48 @@ export function Configuration() {
     toast.success('PostgreSQL connection test successful!');
   };
 
-  const handleSaveConfig = () => {
-    if (!googleSheetsConfig.serviceAccountFile) {
+  const handleSaveConfig = async () => {
+    if (!googleSheetsConfig.serviceAccountJson) {
       toast.error('Please select a service account JSON file before saving');
       return;
     }
-    // Mock save configuration
-    toast.success('Configuration saved successfully!');
+
+    const googleSheetsPayload = {
+      service_account_json: googleSheetsConfig.serviceAccountJson,
+      vendor_data_url: googleSheetsConfig.vendorDataUrl,
+      vqc_data_url: googleSheetsConfig.vqcDataUrl,
+      ft_data_url: googleSheetsConfig.ftDataUrl,
+      cs_data_url: googleSheetsConfig.csDataUrl,
+    };
+
+    const postgresPayload = {
+      host: postgresConfig.host,
+      port: parseInt(postgresConfig.port, 10),
+      database_name: postgresConfig.database,
+      username: postgresConfig.username,
+      password: postgresConfig.password,
+    };
+
+    toast.promise(
+      Promise.all([
+        saveGoogleSheetsConfig(googleSheetsPayload),
+        savePostgresConfig(postgresPayload),
+      ]).then(async ([gsResponse, pgResponse]) => {
+        if (!gsResponse.ok || !pgResponse.ok) {
+          const gsError = gsResponse.ok ? null : await gsResponse.json();
+          const pgError = pgResponse.ok ? null : await pgResponse.json();
+          throw new Error(
+            `Google Sheets: ${gsError?.error || 'Failed'} | PostgreSQL: ${pgError?.error || 'Failed'}`
+          );
+        }
+        return { gsResponse, pgResponse };
+      }),
+      {
+        loading: 'Saving configuration...',
+        success: 'Configuration saved successfully!',
+        error: (err) => `Failed to save: ${err.message}`,
+      }
+    );
   };
 
   return (

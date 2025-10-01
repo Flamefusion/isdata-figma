@@ -1,0 +1,16 @@
+ERROR 2025-10-01 03:41:21,103 views Migration failed: relation "google_sheets_configuration" does not exist
+LINE 1: ..., "google_sheets_configuration"."updated_at" FROM "google_sh...
+                                                             ^
+
+ERROR 2025-10-01 03:42:02,456 views Migration failed: relation "google_sheets_configuration" does not exist
+LINE 1: ..., "google_sheets_configuration"."updated_at" FROM "google_sh...
+                                                             ^
+
+ERROR 2025-10-01 03:42:09,539 views Migration failed: relation "google_sheets_configuration" does not exist
+LINE 1: ..., "google_sheets_configuration"."updated_at" FROM "google_sh...
+                                                             ^
+
+ERROR 2025-10-01 03:44:45,086 views Migration failed: relation "google_sheets_configuration" does not exist
+LINE 1: ..., "google_sheets_configuration"."updated_at" FROM "google_sh...
+                                                             ^
+

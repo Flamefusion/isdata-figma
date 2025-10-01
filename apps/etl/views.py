@@ -13,6 +13,9 @@ from apps.etl.serializers import MigrationHistorySerializer, StartMigrationSeria
 from apps.etl.services.migration_service import MigrationService
 from django.conf import settings
 import logging
+import json
+import tempfile
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -21,48 +24,59 @@ class StartMigrationView(APIView):
     
     def post(self, request):
         """Start data migration from Google Sheets"""
-        serializer = StartMigrationSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
-        mode = serializer.validated_data['mode']
-        sheet_configs = serializer.validated_data['sheets']
-        
-        # Example sheet_configs format:
-        # [
-        #     {
-        #         'spreadsheet_id': '1H3Vt4rDarzZFpxqNwlU62etIKygt70zntrVeighRGw',
-        #         'range': 'FINAL STATUS!A:G',
-        #         'table_name': 'vendor_data',
-        #         'vendor': '3DE TECH'
-        #     }
-        # ]
+        mode = request.data.get('mode', 'FAST')
         
         try:
-            # Get service account file from settings
-            service_account_file = settings.GOOGLE_SERVICE_ACCOUNT_FILE
+            # Get user's configuration
+            from apps.configuration.models import GoogleSheetsConfiguration
+            config = GoogleSheetsConfiguration.objects.get(user=request.user)
             
-            # Initialize migration service
-            migration_service = MigrationService(request.user, service_account_file)
+            # Generate sheet configurations from saved config
+            sheet_configs = config.get_migration_configs()
             
-            # Start migration
-            logger.info(f"Starting migration in {mode} mode for user {request.user.username}")
-            migration_records = migration_service.start_migration(sheet_configs, mode)
+            if not sheet_configs:
+                return Response({
+                    'error': 'No sheet configurations found. Please configure Google Sheets first.'
+                }, status=status.HTTP_400_BAD_REQUEST)
             
-            # Serialize results
-            serializer = MigrationHistorySerializer(migration_records, many=True)
+            # Create temporary service account file
+            service_account_data = config.service_account_json
             
+            temp_file_path = ''
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as temp_file:
+                json.dump(service_account_data, temp_file)
+                temp_file_path = temp_file.name
+            
+            try:
+                # Initialize migration service
+                migration_service = MigrationService(request.user, temp_file_path)
+                
+                # Start migration
+                logger.info(f"Starting migration in {mode} mode for user {request.user.username}")
+                migration_records = migration_service.start_migration(sheet_configs, mode)
+                
+                # Serialize results
+                serializer = MigrationHistorySerializer(migration_records, many=True)
+                
+                return Response({
+                    'message': f'Migration completed in {mode} mode',
+                    'migrations': serializer.data
+                }, status=status.HTTP_200_OK)
+                
+            finally:
+                # Clean up temp file
+                if temp_file_path:
+                    os.unlink(temp_file_path)
+                
+        except GoogleSheetsConfiguration.DoesNotExist:
             return Response({
-                'message': f'Migration completed in {mode} mode',
-                'migrations': serializer.data
-            }, status=status.HTTP_200_OK)
-            
+                'error': 'Google Sheets configuration not found. Please configure first.'
+            }, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             logger.error(f"Migration failed: {e}")
             return Response({
                 'error': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
 class MigrationHistoryListView(generics.ListAPIView):
     """Get migration history"""
     permission_classes = [IsAuthenticated]

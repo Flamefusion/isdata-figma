@@ -20,7 +20,7 @@ import os
 logger = logging.getLogger(__name__)
 
 class StartMigrationView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminOrSuperUser]
+    permission_classes = [IsAuthenticated]
     
     def post(self, request):
         """Start data migration from Google Sheets"""
@@ -39,17 +39,17 @@ class StartMigrationView(APIView):
                     'error': 'No sheet configurations found. Please configure Google Sheets first.'
                 }, status=status.HTTP_400_BAD_REQUEST)
             
-            # Create temporary service account file
-            service_account_data = config.service_account_json
-            
-            temp_file_path = ''
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as temp_file:
-                json.dump(service_account_data, temp_file)
-                temp_file_path = temp_file.name
-            
+            # Load service account JSON
             try:
-                # Initialize migration service
-                migration_service = MigrationService(request.user, temp_file_path)
+                service_account_data = json.loads(config.service_account_json)
+            except (json.JSONDecodeError, TypeError):
+                return Response({
+                    'error': 'Invalid service account JSON format.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                # Initialize migration service with the JSON object
+                migration_service = MigrationService(request.user, service_account_data)
                 
                 # Start migration
                 logger.info(f"Starting migration in {mode} mode for user {request.user.username}")
@@ -63,10 +63,9 @@ class StartMigrationView(APIView):
                     'migrations': serializer.data
                 }, status=status.HTTP_200_OK)
                 
-            finally:
-                # Clean up temp file
-                if temp_file_path:
-                    os.unlink(temp_file_path)
+            except Exception as e:
+                logger.error(f"Migration failed during service execution: {e}")
+                return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 
         except GoogleSheetsConfiguration.DoesNotExist:
             return Response({

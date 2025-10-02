@@ -5,6 +5,8 @@
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 import logging
+import httplib2
+from google_auth_httplib2 import AuthorizedHttp
 
 logger = logging.getLogger(__name__)
 
@@ -18,11 +20,22 @@ class GoogleSheetsExtractor:
     def connect(self):
         """Connect to Google Sheets API"""
         try:
-            credentials = service_account.Credentials.from_service_account_file(
-                self.service_account_file,
-                scopes=['https://www.googleapis.com/auth/spreadsheets.readonly']
-            )
-            self.service = build('sheets', 'v4', credentials=credentials)
+            scopes = ['https://www.googleapis.com/auth/spreadsheets.readonly']
+            
+            if isinstance(self.service_account_file, dict):
+                credentials = service_account.Credentials.from_service_account_info(
+                    self.service_account_file,
+                    scopes=scopes
+                )
+            else:
+                credentials = service_account.Credentials.from_service_account_file(
+                    self.service_account_file,
+                    scopes=scopes
+                )
+            
+            http = httplib2.Http(timeout=60)
+            authed_http = AuthorizedHttp(credentials, http=http)
+            self.service = build('sheets', 'v4', http=authed_http)
             logger.info("✓ Google Sheets API connected")
             return True
         except Exception as e:
@@ -36,7 +49,7 @@ class GoogleSheetsExtractor:
             result = sheet.values().get(
                 spreadsheetId=spreadsheet_id,
                 range=range_name
-            ).execute()
+            ).execute(num_retries=3)
             
             values = result.get('values', [])
             logger.info(f"✓ Extracted {len(values)} rows from {range_name}")
@@ -50,7 +63,7 @@ class GoogleSheetsExtractor:
         try:
             sheet_metadata = self.service.spreadsheets().get(
                 spreadsheetId=spreadsheet_id
-            ).execute()
+            ).execute(num_retries=3)
             
             sheets = sheet_metadata.get('sheets', [])
             sheet_names = [sheet['properties']['title'] for sheet in sheets]

@@ -25,12 +25,12 @@ class GoogleSheetsConfiguration(models.Model):
     cs_spreadsheet_id = models.CharField(max_length=200, blank=True)
     
     # Sheet ranges (configurable)
-    vendor_range = models.CharField(max_length=100, default="FINAL STATUS!A:G")
+    vendor_range = models.CharField(max_length=100, default="Working!A:G")
     vqc_3detech_range = models.CharField(max_length=100, default="3DE TECH!A:M")
     vqc_ihc_range = models.CharField(max_length=100, default="IHC!A:M")
     vqc_makenica_range = models.CharField(max_length=100, default="MAKENICA!A:M")
-    ft_range = models.CharField(max_length=100, default="Sheet1!A:O")
-    cs_range = models.CharField(max_length=100, default="Sheet1!A:I")
+    ft_range = models.CharField(max_length=100, default="Working!A:O")
+    cs_range = models.CharField(max_length=100, default="FINAL STATUS!A:I")
     
     is_active = models.BooleanField(default=True)
     last_tested = models.DateTimeField(null=True, blank=True)

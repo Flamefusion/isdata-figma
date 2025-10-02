@@ -13,10 +13,10 @@ class VendorData(models.Model):
         ('MAKENICA', 'MAKENICA'),
     ]
     
-    date = models.DateField()
+    date = models.DateField(null=True, blank=True)
     mo_number = models.CharField(max_length=100)
     uid = models.CharField(max_length=200, unique=True, db_index=True)
-    ring_status = models.CharField(max_length=50)
+    ring_status = models.CharField(max_length=50, blank=True, default='')
     charger_status = models.CharField(max_length=50, blank=True, null=True)
     charger_lot_details = models.TextField(blank=True, null=True)
     rejection_reason = models.TextField(blank=True, null=True)
@@ -54,14 +54,7 @@ class VQCData(models.Model):
         ('MAKENICA', 'MAKENICA'),
     ]
     
-    STATUS_CHOICES = [
-        ('ACCEPTED', 'ACCEPTED'),
-        ('WABI-SABI', 'WABI-SABI'),
-        ('SCRAP', 'SCRAP'),
-        ('RT CONVERSION', 'RT CONVERSION'),
-    ]
-    
-    logged_timestamp = models.DateField()
+    logged_timestamp = models.DateField(null=True, blank=True)
     three_de_mo = models.CharField(max_length=100, blank=True, null=True)
     uid = models.CharField(max_length=200, db_index=True)
     sku = models.CharField(max_length=100, blank=True, null=True)
@@ -70,7 +63,13 @@ class VQCData(models.Model):
     ihc = models.CharField(max_length=200, blank=True, null=True)
     makenica = models.CharField(max_length=200, blank=True, null=True)
     vendor = models.CharField(max_length=50, choices=VENDOR_CHOICES)
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES)
+    STATUS_CHOICES = [
+        ('ACCEPTED', 'ACCEPTED'),
+        ('SCRAP', 'SCRAP'),
+        ('WABI-SABI', 'WABI-SABI'),
+        ('RT CONVERSION', 'RT CONVERSION'),
+    ]
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, blank=True, null=True)
     reason = models.TextField(blank=True, null=True)
     pcb_type = models.CharField(max_length=100, blank=True, null=True)
     qc_person_id = models.CharField(max_length=100, blank=True, null=True)
@@ -128,11 +127,11 @@ class FTData(models.Model):
         ('FUNCTIONAL BUT REJECTED', 'FUNCTIONAL BUT REJECTED'),
     ]
     
-    date = models.DateField()
+    date = models.DateField(null=True, blank=True)
     month = models.CharField(max_length=20, blank=True, null=True)
     mo_number = models.CharField(max_length=100)
     uid = models.CharField(max_length=200, db_index=True)
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, blank=True, null=True)
     reason = models.TextField(blank=True, null=True)
     size = models.CharField(max_length=20, blank=True, null=True)
     sku = models.CharField(max_length=100, blank=True, null=True)
@@ -176,10 +175,10 @@ class ChargingStationData(models.Model):
         ('REJECTED', 'REJECTED'),
     ]
     
-    logged_timestamp = models.DateField()
+    logged_timestamp = models.DateField(null=True, blank=True)
     uid = models.CharField(max_length=200, db_index=True)
     serial_number = models.CharField(max_length=200, blank=True, null=True)
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, blank=True, null=True)
     reason = models.TextField(blank=True, null=True)
     mac_id = models.CharField(max_length=100, blank=True, null=True)
     polishing_qc_status = models.CharField(max_length=50, blank=True, null=True)

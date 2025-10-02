@@ -8,8 +8,10 @@ from datetime import datetime
 class DataValidator:
     """Validates and transforms ETL data"""
     
-    # Serial number format: RA-CH2-LF3-WB-RT10-0000936
-    SERIAL_PATTERN = r'^[A-Z]{2,4}-[A-Z0-9]+-[A-Z0-9]+-[A-Z0-9]+-[A-Z0-9]+-\d+$'
+    # Serial number formats: 
+    # RA-CH2-OZE-W1-AG05-008
+    # RA-CH2-OZE-W1-AG05-0000001
+    SERIAL_PATTERN = r'^[A-Z]{2}-[A-Z0-9]{3}-[A-Z0-9]{3}-[A-Z0-9]{2}-[A-Z0-9]{4}-([A-Z0-9]{3}|\d{7})$'
     
     @staticmethod
     def validate_serial_number(serial: str) -> bool:

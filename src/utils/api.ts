@@ -114,3 +114,15 @@ export const savePostgresConfig = async (config: any) => {
     body: JSON.stringify(config),
   });
 };
+
+export const testGoogleSheetsConnection = async () => {
+  return fetchWithAuth('/configuration/google-sheets/test/', {
+    method: 'POST',
+  });
+};
+
+export const testPostgresConnection = async () => {
+  return fetchWithAuth('/configuration/postgresql/test/', {
+    method: 'POST',
+  });
+};

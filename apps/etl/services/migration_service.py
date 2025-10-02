@@ -4,6 +4,7 @@
 
 import time
 import logging
+from django.utils import timezone
 from django.db import connection, transaction
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from io import StringIO
@@ -254,31 +255,34 @@ class MigrationService:
     
     def _transform_vendor_data(self, record, vendor):
         """Transform vendor data"""
+        date = self.validator.parse_date(record.get('date'))
+
         uid = record.get('uid', '')
         
-        # Validate serial number
-        if not self.validator.validate_serial_number(uid):
-            logger.warning(f"Invalid serial format: {uid}")
-            return None
+        # if not self.validator.validate_serial_number(uid):
+        #     logger.warning(f"Invalid serial format: {uid}")
+        #     return None
         
         return {
-            'date': self.validator.parse_date(record.get('date')),
+            'date': date,
             'mo_number': self.validator.normalize_text(record.get('mo_number', '')),
             'uid': self.validator.normalize_text(uid),
             'ring_status': self.validator.normalize_status(record.get('ring_status', '')),
             'charger_status': self.validator.normalize_status(record.get('charger_status', '')),
             'charger_lot_details': self.validator.normalize_text(record.get('charger_lot_details', '')),
             'rejection_reason': self.validator.normalize_text(record.get('rejection_reason', '')),
-            'vendor': vendor
+            'vendor': vendor,
+            'created_at': timezone.now(),
+            'updated_at': timezone.now()
         }
     
     def _transform_vqc_data(self, record, vendor):
         """Transform VQC data"""
         uid = record.get('uid', '')
         
-        if not self.validator.validate_serial_number(uid):
-            logger.warning(f"Invalid serial format: {uid}")
-            return None
+        # if not self.validator.validate_serial_number(uid):
+        #     logger.warning(f"Invalid serial format: {uid}")
+        #     return None
         
         return {
             'logged_timestamp': self.validator.parse_date(record.get('logged_timestamp', '')),
@@ -294,17 +298,21 @@ class MigrationService:
             'reason': self.validator.normalize_text(record.get('reason', '')),
             'pcb_type': self.validator.normalize_text(record.get('pcb', '')),
             'qc_person_id': self.validator.normalize_text(record.get('qc_code', '')),
+            'created_at': timezone.now(),
+            'updated_at': timezone.now(),
         }
     
     def _transform_ft_data(self, record):
         """Transform FT data"""
+        date = self.validator.parse_date(record.get('date', ''))
+
         uid = record.get('uid', '')
         
-        if not self.validator.validate_serial_number(uid):
-            return None
+        # if not self.validator.validate_serial_number(uid):
+        #     return None
         
         return {
-            'date': self.validator.parse_date(record.get('date', '')),
+            'date': date,
             'month': self.validator.normalize_text(record.get('month', '')),
             'mo_number': self.validator.normalize_text(record.get('mo_number', '')),
             'uid': self.validator.normalize_text(uid),
@@ -318,17 +326,21 @@ class MigrationService:
             'qc_code': self.validator.normalize_text(record.get('qc_code', '')),
             'qc_person': self.validator.normalize_text(record.get('qc_person', '')),
             'remarks': self.validator.normalize_text(record.get('remarks', '')),
+            'created_at': timezone.now(),
+            'updated_at': timezone.now(),
         }
     
     def _transform_charging_station_data(self, record):
         """Transform charging station data"""
+        logged_timestamp = self.validator.parse_date(record.get('logged_timestamp', ''))
+
         uid = record.get('uid', '')
         
-        if not self.validator.validate_serial_number(uid):
-            return None
+        # if not self.validator.validate_serial_number(uid):
+        #     return None
         
         return {
-            'logged_timestamp': self.validator.parse_date(record.get('logged_timestamp', '')),
+            'logged_timestamp': logged_timestamp,
             'uid': self.validator.normalize_text(uid),
             'serial_number': self.validator.normalize_text(record.get('serial_number', '')),
             'status': self.validator.normalize_status(record.get('status', '')),
@@ -337,6 +349,8 @@ class MigrationService:
             'polishing_qc_status': self.validator.normalize_status(record.get('polishing_qc_status', '')),
             'after_moulding_status': self.validator.normalize_status(record.get('after_moulding_status', '')),
             'ioc_status': self.validator.normalize_status(record.get('ioc_status', '')),
+            'created_at': timezone.now(),
+            'updated_at': timezone.now(),
         }
     
     def _detect_duplicates(self, data, table_name, migration):
@@ -399,18 +413,18 @@ class MigrationService:
         
         if table_name == 'vendor_data':
             fieldnames = ['date', 'mo_number', 'uid', 'ring_status', 'charger_status', 
-                         'charger_lot_details', 'rejection_reason', 'vendor']
+                         'charger_lot_details', 'rejection_reason', 'vendor', 'created_at', 'updated_at']
         elif table_name == 'vqc_data':
             fieldnames = ['logged_timestamp', 'three_de_mo', 'uid', 'sku', 'size', 
                          'ihc_mo', 'ihc', 'makenica', 'vendor', 'status', 'reason', 
-                         'pcb_type', 'qc_person_id']
+                         'pcb_type', 'qc_person_id', 'created_at', 'updated_at']
         elif table_name == 'ft_data':
             fieldnames = ['date', 'month', 'mo_number', 'uid', 'status', 'reason', 
                          'size', 'sku', 'shift', 'na_status', 'pcb', 'qc_code', 
-                         'qc_person', 'remarks']
+                         'qc_person', 'remarks', 'created_at', 'updated_at']
         elif table_name == 'charging_station_data':
             fieldnames = ['logged_timestamp', 'uid', 'serial_number', 'status', 'reason', 
-                         'mac_id', 'polishing_qc_status', 'after_moulding_status', 'ioc_status']
+                         'mac_id', 'polishing_qc_status', 'after_moulding_status', 'ioc_status', 'created_at', 'updated_at']
         else:
             return
         

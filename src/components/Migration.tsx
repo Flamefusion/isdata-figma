@@ -87,9 +87,20 @@ export function Migration() {
 
   useEffect(() => {
     fetchMigrationHistory();
-    const interval = setInterval(fetchMigrationStatus, 3000); // Poll every 3 seconds
-    return () => clearInterval(interval);
-  }, []);
+    fetchMigrationStatus(); // Initial fetch
+
+    let interval: NodeJS.Timeout | null = null;
+
+    if (isRunningMigration) {
+      interval = setInterval(fetchMigrationStatus, 3000); // Poll every 3 seconds
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [isRunningMigration]);
 
   const runAllMigrations = async () => {
     try {
@@ -304,7 +315,7 @@ export function Migration() {
                   <span className="mx-2">|</span>
                   Mode: {h.mode}
                   <span className="mx-2">|</span>
-                  {h.migrated_records.toLocaleString()} / {h.total_records.toLocaleString()} records
+                  {(h.migrated_records || 0).toLocaleString()} / {(h.total_records || 0).toLocaleString()} records
                 </div>
               </div>
             )) : (

@@ -7,7 +7,7 @@ import { Textarea } from './ui/textarea';
 import { Separator } from './ui/separator';
 import { Database, Sheet, Key, Server, Upload, FileText } from 'lucide-react';
 import { toast } from 'sonner';
-import { saveGoogleSheetsConfig, savePostgresConfig } from '../utils/api';
+import { saveGoogleSheetsConfig, savePostgresConfig, testGoogleSheetsConnection, testPostgresConnection } from '../utils/api';
 
 export function Configuration() {
   const [googleSheetsConfig, setGoogleSheetsConfig] = useState({
@@ -77,17 +77,68 @@ export function Configuration() {
   };
 
   const handleGoogleSheetsTest = () => {
-    if (!googleSheetsConfig.serviceAccountFile) {
-      toast.error('Please select a service account JSON file first');
+    if (!googleSheetsConfig.serviceAccountJson) {
+      toast.error('Please load a service account JSON file first');
       return;
     }
-    // Mock test connection
-    toast.success('Google Sheets connection test successful!');
+
+    // First, save the latest config, then test
+    const saveAndTest = async () => {
+      const googleSheetsPayload = {
+        service_account_json: googleSheetsConfig.serviceAccountJson,
+        vendor_data_url: googleSheetsConfig.vendorDataUrl,
+        vqc_data_url: googleSheetsConfig.vqcDataUrl,
+        ft_data_url: googleSheetsConfig.ftDataUrl,
+        cs_data_url: googleSheetsConfig.csDataUrl,
+      };
+      
+      // Silently save the latest config
+      await saveGoogleSheetsConfig(googleSheetsPayload);
+      
+      // Then, run the test
+      const response = await testGoogleSheetsConnection();
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Test failed');
+      }
+      return response.json();
+    };
+
+    toast.promise(saveAndTest(), {
+      loading: 'Testing Google Sheets connection...',
+      success: (data) => data.message || 'Connection test successful!',
+      error: (err) => `Connection failed: ${err.message}`,
+    });
   };
 
   const handlePostgresTest = () => {
-    // Mock test connection
-    toast.success('PostgreSQL connection test successful!');
+    // First, save the latest config, then test
+    const saveAndTest = async () => {
+      const postgresPayload = {
+        host: postgresConfig.host,
+        port: parseInt(postgresConfig.port, 10),
+        database_name: postgresConfig.database,
+        username: postgresConfig.username,
+        password: postgresConfig.password,
+      };
+      
+      // Silently save the latest config
+      await savePostgresConfig(postgresPayload);
+      
+      // Then, run the test
+      const response = await testPostgresConnection();
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Test failed');
+      }
+      return response.json();
+    };
+
+    toast.promise(saveAndTest(), {
+      loading: 'Testing PostgreSQL connection...',
+      success: (data) => data.message || 'Connection test successful!',
+      error: (err) => `Connection failed: ${err.message}`,
+    });
   };
 
   const handleSaveConfig = async () => {

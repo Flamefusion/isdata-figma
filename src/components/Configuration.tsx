@@ -3,10 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Textarea } from './ui/textarea';
 import { Separator } from './ui/separator';
-import { Database, Sheet, Key, Server, Upload, FileText } from 'lucide-react';
+import { Database, Sheet, Upload, FileText, Loader2, Trash2, Layers } from 'lucide-react';
 import { toast } from 'sonner';
+import { testDbConnection, createDbSchema, clearDb, testSheetsConnection } from '../services/api';
 
 export function Configuration() {
   const [googleSheetsConfig, setGoogleSheetsConfig] = useState({
@@ -28,22 +28,20 @@ export function Configuration() {
     password: ''
   });
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [logs, setLogs] = useState<string[]>([]);
+
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       if (file.type === 'application/json' || file.name.endsWith('.json')) {
-        setGoogleSheetsConfig(prev => ({
-          ...prev,
-          serviceAccountFile: file,
-          serviceAccountPath: file.name
-        }));
-        
-        // Read file content for future use
         const reader = new FileReader();
         reader.onload = (e) => {
           const content = e.target?.result as string;
           setGoogleSheetsConfig(prev => ({
             ...prev,
+            serviceAccountFile: file,
+            serviceAccountPath: file.name,
             serviceAccountJson: content
           }));
         };
@@ -74,27 +72,81 @@ export function Configuration() {
     toast.success('Service account file cleared');
   };
 
-  const handleGoogleSheetsTest = () => {
-    if (!googleSheetsConfig.serviceAccountFile) {
+  const handleGoogleSheetsTest = async () => {
+    if (!googleSheetsConfig.serviceAccountJson) {
       toast.error('Please select a service account JSON file first');
       return;
     }
-    // Mock test connection
-    toast.success('Google Sheets connection test successful!');
-  };
-
-  const handlePostgresTest = () => {
-    // Mock test connection
-    toast.success('PostgreSQL connection test successful!');
-  };
-
-  const handleSaveConfig = () => {
-    if (!googleSheetsConfig.serviceAccountFile) {
-      toast.error('Please select a service account JSON file before saving');
-      return;
+    setIsLoading(true);
+    setLogs(['Testing Google Sheets connection...']);
+    try {
+      const config = {
+        serviceAccountContent: JSON.parse(googleSheetsConfig.serviceAccountJson),
+        vendorDataUrl: googleSheetsConfig.vendorDataUrl,
+        vqcDataUrl: googleSheetsConfig.vqcDataUrl,
+        ftDataUrl: googleSheetsConfig.ftDataUrl,
+      };
+      const result = await testSheetsConnection(config);
+      setLogs(prev => [...prev, result.message]);
+      toast.success('Google Sheets connection test successful!');
+    } catch (error: any) {
+      setLogs(prev => [...prev, `Error: ${error.message}`]);
+      toast.error(`Google Sheets connection test failed: ${error.message}`);
+    } finally {
+      setIsLoading(false);
     }
-    // Mock save configuration
-    toast.success('Configuration saved successfully!');
+  };
+
+  const handlePostgresTest = async () => {
+    setIsLoading(true);
+    setLogs(['Testing PostgreSQL connection...']);
+    try {
+      const config = {
+        dbHost: postgresConfig.host,
+        dbPort: postgresConfig.port,
+        dbName: postgresConfig.database,
+        dbUser: postgresConfig.username,
+        dbPassword: postgresConfig.password,
+      };
+      const result = await testDbConnection(config);
+      setLogs(prev => [...prev, result.message]);
+      toast.success('PostgreSQL connection test successful! Configuration saved for this session.');
+    } catch (error: any) {
+      setLogs(prev => [...prev, `Error: ${error.message}`]);
+      toast.error(`PostgreSQL connection test failed: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCreateSchema = async () => {
+    setIsLoading(true);
+    setLogs(['Creating database schema...']);
+    try {
+      const result = await createDbSchema();
+      setLogs(result.logs);
+      toast.success('Database schema created successfully!');
+    } catch (error: any) {
+      setLogs(prev => [...prev, `Error: ${error.message}`]);
+      toast.error(`Schema creation failed: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleClearDatabase = async () => {
+    setIsLoading(true);
+    setLogs(['Clearing database...']);
+    try {
+      const result = await clearDb();
+      setLogs(prev => [...prev, result.message]);
+      toast.success('Database cleared successfully!');
+    } catch (error: any) {
+      setLogs(prev => [...prev, `Error: ${error.message}`]);
+      toast.error(`Database clearing failed: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -102,7 +154,7 @@ export function Configuration() {
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Configuration</h2>
         <p className="text-muted-foreground">
-          Configure your Google Sheets and PostgreSQL database connections
+          Configure your Google Sheets and PostgreSQL database connections. A successful test will save the configuration for the current session.
         </p>
       </div>
 
@@ -118,7 +170,6 @@ export function Configuration() {
           <div className="space-y-2">
             <Label htmlFor="serviceAccount">Service Account JSON File</Label>
             <div className="space-y-3">
-              {/* File Input (Hidden) */}
               <input
                 ref={fileInputRef}
                 type="file"
@@ -127,7 +178,6 @@ export function Configuration() {
                 className="hidden"
               />
               
-              {/* File Path Display */}
               <div className="flex gap-2">
                 <Input
                   id="serviceAccount"
@@ -159,7 +209,6 @@ export function Configuration() {
                 )}
               </div>
               
-              {/* File Info */}
               {googleSheetsConfig.serviceAccountFile && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground bg-green-50 p-2 rounded border">
                   <FileText className="h-4 w-4 text-green-600" />
@@ -204,7 +253,8 @@ export function Configuration() {
             </div>
           </div>
 
-          <Button onClick={handleGoogleSheetsTest} variant="outline" className="w-full">
+          <Button onClick={handleGoogleSheetsTest} variant="outline" className="w-full" disabled={isLoading}>
+            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Test Google Sheets Connection
           </Button>
         </CardContent>
@@ -274,18 +324,36 @@ export function Configuration() {
             </div>
           </div>
 
-          <Button onClick={handlePostgresTest} variant="outline" className="w-full">
+          <Button onClick={handlePostgresTest} variant="outline" className="w-full" disabled={isLoading}>
+            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Test PostgreSQL Connection
           </Button>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Button onClick={handleCreateSchema} variant="outline" disabled={isLoading}>
+              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Layers className="mr-2 h-4 w-4" />}
+              Create Schema
+            </Button>
+            <Button onClick={handleClearDatabase} variant="destructive" disabled={isLoading}>
+              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+              Clear Database
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Save Configuration */}
-      <div className="flex justify-end">
-        <Button onClick={handleSaveConfig} className="px-8">
-          Save Configuration
-        </Button>
-      </div>
+      {logs.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Logs</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <pre className="bg-gray-100 p-4 rounded-md text-sm max-h-60 overflow-auto">
+              {logs.join('\n')}
+            </pre>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

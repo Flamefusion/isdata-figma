@@ -1,0 +1,28 @@
+# Testing dependencies
+pytest
+pytest-flask
+pytest-mock
+pytest-cov
+pytest-env
+
+# For database testing
+pytest-postgresql
+
+# For mocking HTTP requests
+responses
+
+# For testing async code if needed
+pytest-asyncio
+
+# For generating test data
+factory-boy
+faker
+
+# Code quality tools
+flake8
+black
+isort
+
+# Additional test utilities
+freezegun  # For mocking time/dates
+parameterized  # For parameterized tests

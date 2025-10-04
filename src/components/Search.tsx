@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Search as SearchIcon, Filter, Download, FilterX, Loader2 } from 'lucide-react';
 import { getSearchFilters, searchRings, exportSearchResults } from '../services/api';
 import { toast } from 'sonner';
+import { useAppState } from '../context/AppStateContext';
 
 type RingData = any;
 
@@ -24,19 +25,8 @@ interface FilterOptions {
 }
 
 export function Search() {
-  const [filters, setFilters] = useState({
-    serialNumbers: '',
-    moNumbers: '',
-    dateFrom: undefined as Date | undefined,
-    dateTo: undefined as Date | undefined,
-    vendor: [] as string[],
-    vqcStatus: [] as string[],
-    ftStatus: [] as string[],
-    rejectionReason: [] as string[],
-    pcb: [] as string[],
-    qccode: [] as string[],
-    qcperson: [] as string[],
-  });
+  const { state, dispatch } = useAppState();
+  const { filters, searchResults } = state.search;
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({
     vendors: [],
     vqc_statuses: [],
@@ -46,7 +36,6 @@ export function Search() {
     qccodes: [],
     qcpersons: [],
   });
-  const [searchResults, setSearchResults] = useState<RingData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -61,6 +50,10 @@ export function Search() {
     fetchFilters();
   }, []);
 
+  const handleFilterChange = (filterName: string, value: any) => {
+    dispatch({ type: 'SET_SEARCH_STATE', payload: { filters: { ...filters, [filterName]: value } } });
+  };
+
   const handleSearch = async () => {
     setIsLoading(true);
     try {
@@ -70,7 +63,7 @@ export function Search() {
         dateTo: filters.dateTo ? filters.dateTo.toISOString().split('T')[0] : undefined,
       };
       const results = await searchRings(searchParams);
-      setSearchResults(results);
+      dispatch({ type: 'SET_SEARCH_STATE', payload: { searchResults: results } });
       toast.success(`Found ${results.length} records.`);
     } catch (error: any) {
       toast.error(`Search failed: ${error.message}`);
@@ -94,20 +87,22 @@ export function Search() {
   };
 
   const clearFilters = () => {
-    setFilters({
-      serialNumbers: '',
-      moNumbers: '',
-      dateFrom: undefined,
-      dateTo: undefined,
-      vendor: [],
-      vqcStatus: [],
-      ftStatus: [],
-      rejectionReason: [],
-      pcb: [],
-      qccode: [],
-      qcperson: [],
-    });
-    setSearchResults([]);
+    dispatch({ type: 'SET_SEARCH_STATE', payload: { 
+        filters: {
+            serialNumbers: '',
+            moNumbers: '',
+            dateFrom: undefined,
+            dateTo: undefined,
+            vendor: [],
+            vqcStatus: [],
+            ftStatus: [],
+            rejectionReason: [],
+            pcb: [],
+            qccode: [],
+            qcperson: [],
+        },
+        searchResults: [] 
+    } });
     toast.info('Filters cleared.');
   };
 
@@ -140,7 +135,7 @@ export function Search() {
                 id="serial-numbers"
                 placeholder="RNG001, RNG002..."
                 value={filters.serialNumbers}
-                onChange={(e) => setFilters(f => ({ ...f, serialNumbers: e.target.value }))}
+                onChange={(e) => handleFilterChange('serialNumbers', e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -149,14 +144,14 @@ export function Search() {
                 id="mo-numbers"
                 placeholder="MO001, MO002..."
                 value={filters.moNumbers}
-                onChange={(e) => setFilters(f => ({ ...f, moNumbers: e.target.value }))}
+                onChange={(e) => handleFilterChange('moNumbers', e.target.value)}
               />
             </div>
             <div className="space-y-2">
               <Label>Date From</Label>
               <DatePicker
                 date={filters.dateFrom}
-                onDateChange={(date) => setFilters(f => ({ ...f, dateFrom: date }))}
+                onDateChange={(date) => handleFilterChange('dateFrom', date)}
                 placeholder="Select from date"
               />
             </div>
@@ -164,7 +159,7 @@ export function Search() {
               <Label>Date To</Label>
               <DatePicker
                 date={filters.dateTo}
-                onDateChange={(date) => setFilters(f => ({ ...f, dateTo: date }))}
+                onDateChange={(date) => handleFilterChange('dateTo', date)}
                 placeholder="Select to date"
               />
             </div>
@@ -175,7 +170,7 @@ export function Search() {
             {/* Vendor */}
             <div className="space-y-2">
               <Label>Vendor</Label>
-              <Select onValueChange={(value) => setFilters(f => ({ ...f, vendor: value === 'All' ? [] : [value] }))}>
+              <Select onValueChange={(value) => handleFilterChange('vendor', value === 'All' ? [] : [value])}>
                 <SelectTrigger><SelectValue placeholder="All Vendors" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="All">All Vendors</SelectItem>
@@ -186,7 +181,7 @@ export function Search() {
             {/* VQC Status */}
             <div className="space-y-2">
               <Label>VQC Status</Label>
-              <Select onValueChange={(value) => setFilters(f => ({ ...f, vqcStatus: value === 'All' ? [] : [value] }))}>
+              <Select onValueChange={(value) => handleFilterChange('vqcStatus', value === 'All' ? [] : [value])}>
                 <SelectTrigger><SelectValue placeholder="All VQC Statuses" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="All">All VQC Statuses</SelectItem>
@@ -197,7 +192,7 @@ export function Search() {
             {/* FT Status */}
             <div className="space-y-2">
               <Label>FT Status</Label>
-              <Select onValueChange={(value) => setFilters(f => ({ ...f, ftStatus: value === 'All' ? [] : [value] }))}>
+              <Select onValueChange={(value) => handleFilterChange('ftStatus', value === 'All' ? [] : [value])}>
                 <SelectTrigger><SelectValue placeholder="All FT Statuses" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="All">All FT Statuses</SelectItem>
@@ -208,7 +203,7 @@ export function Search() {
             {/* Rejection Reason */}
             <div className="space-y-2">
               <Label>Rejection Reason</Label>
-              <Select onValueChange={(value) => setFilters(f => ({ ...f, rejectionReason: value === 'All' ? [] : [value] }))}>
+              <Select onValueChange={(value) => handleFilterChange('rejectionReason', value === 'All' ? [] : [value])}>
                 <SelectTrigger><SelectValue placeholder="All Reasons" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="All">All Reasons</SelectItem>

@@ -12,6 +12,7 @@ import { Search } from './components/Search';
 import { RejectionTrends } from './components/RejectionTrends';
 import { Toaster } from './components/ui/sonner';
 import { toast } from 'sonner';
+import { AppStateProvider } from './context/AppStateContext';
 
 interface User {
   username: string;
@@ -79,91 +80,93 @@ export default function App() {
   const isLoggedIn = !!user;
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6">
-        <Header
-          username={user?.username}
-          onSettingsClick={() => setIsSettingsOpen(!isSettingsOpen)}
-          onLoginClick={() => setIsLoginModalOpen(true)}
-          isLoggedIn={isLoggedIn}
-        />
+    <AppStateProvider>
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto p-6">
+          <Header
+            username={user?.username}
+            onSettingsClick={() => setIsSettingsOpen(!isSettingsOpen)}
+            onLoginClick={() => setIsLoginModalOpen(true)}
+            isLoggedIn={isLoggedIn}
+          />
 
-        {isLoggedIn ? (
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-7">
-              <TabsTrigger value="home">Home</TabsTrigger>
-              <TabsTrigger value="configuration">Configuration</TabsTrigger>
-              <TabsTrigger value="migration">Migration</TabsTrigger>
-              <TabsTrigger value="preview">Preview</TabsTrigger>
-              <TabsTrigger value="report">Report</TabsTrigger>
-              <TabsTrigger value="search">Search</TabsTrigger>
-              <TabsTrigger value="rejection-trends">Rejection Trends</TabsTrigger>
-            </TabsList>
+          {isLoggedIn ? (
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-7">
+                <TabsTrigger value="home">Home</TabsTrigger>
+                <TabsTrigger value="configuration">Configuration</TabsTrigger>
+                <TabsTrigger value="migration">Migration</TabsTrigger>
+                <TabsTrigger value="preview">Preview</TabsTrigger>
+                <TabsTrigger value="report">Report</TabsTrigger>
+                <TabsTrigger value="search">Search</TabsTrigger>
+                <TabsTrigger value="rejection-trends">Rejection Trends</TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="home" className="mt-6">
-              <Home />
-            </TabsContent>
+              <TabsContent value="home" className="mt-6">
+                <Home />
+              </TabsContent>
 
-            <TabsContent value="configuration" className="mt-6">
-              <Configuration />
-            </TabsContent>
+              <TabsContent value="configuration" className="mt-6">
+                <Configuration />
+              </TabsContent>
 
-            <TabsContent value="migration" className="mt-6">
-              <Migration />
-            </TabsContent>
+              <TabsContent value="migration" className="mt-6">
+                <Migration />
+              </TabsContent>
 
-            <TabsContent value="preview" className="mt-6">
-              <Preview />
-            </TabsContent>
+              <TabsContent value="preview" className="mt-6">
+                <Preview />
+              </TabsContent>
 
-            <TabsContent value="report" className="mt-6">
-              <Report />
-            </TabsContent>
+              <TabsContent value="report" className="mt-6">
+                <Report />
+              </TabsContent>
 
-            <TabsContent value="search" className="mt-6">
-              <Search />
-            </TabsContent>
+              <TabsContent value="search" className="mt-6">
+                <Search />
+              </TabsContent>
 
-            <TabsContent value="rejection-trends" className="mt-6">
-              <RejectionTrends />
-            </TabsContent>
-          </Tabs>
-        ) : (
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-center space-y-4">
-              <h2 className="text-2xl font-semibold">Welcome to Rings Dashboard</h2>
-              <p className="text-muted-foreground">Please log in to access the production dashboard</p>
-              <button
-                onClick={() => setIsLoginModalOpen(true)}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Login to Continue
-              </button>
-              <div className="text-sm text-muted-foreground mt-4">
-                <p>Demo credentials:</p>
-                <p>admin / admin123 • testuser / test123 • manager / manager123</p>
+              <TabsContent value="rejection-trends" className="mt-6">
+                <RejectionTrends />
+              </TabsContent>
+            </Tabs>
+          ) : (
+            <div className="flex items-center justify-center min-h-[400px]">
+              <div className="text-center space-y-4">
+                <h2 className="text-2xl font-semibold">Welcome to Rings Dashboard</h2>
+                <p className="text-muted-foreground">Please log in to access the production dashboard</p>
+                <button
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Login to Continue
+                </button>
+                <div className="text-sm text-muted-foreground mt-4">
+                  <p>Demo credentials:</p>
+                  <p>admin / admin123 • testuser / test123 • manager / manager123</p>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        <LoginModal
-          isOpen={isLoginModalOpen}
-          onClose={() => setIsLoginModalOpen(false)}
-          onLogin={handleLogin}
-        />
+          <LoginModal
+            isOpen={isLoginModalOpen}
+            onClose={() => setIsLoginModalOpen(false)}
+            onLogin={handleLogin}
+          />
 
-        <UserSettings
-          username={user?.username || ''}
-          isDarkMode={isDarkMode}
-          onToggleDarkMode={toggleDarkMode}
-          onLogout={handleLogout}
-          isOpen={isSettingsOpen}
-          onClose={() => setIsSettingsOpen(false)}
-        />
-        
-        <Toaster />
+          <UserSettings
+            username={user?.username || ''}
+            isDarkMode={isDarkMode}
+            onToggleDarkMode={toggleDarkMode}
+            onLogout={handleLogout}
+            isOpen={isSettingsOpen}
+            onClose={() => setIsSettingsOpen(false)}
+          />
+          
+          <Toaster />
+        </div>
       </div>
-    </div>
+    </AppStateProvider>
   );
 }

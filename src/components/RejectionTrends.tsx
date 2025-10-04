@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { TrendingDown, Calendar, Download, Database, Users, Layers, Loader2 } from 'lucide-react';
 import { DatePicker } from './ui/date-picker';
 import { Button } from './ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { ScrollArea } from './ui/scroll-area';
+import { Database, Users, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getVendors, getRejectionTrends } from '../services/api';
 import { format } from 'date-fns';
+import { useAppState } from '../context/AppStateContext';
 
 interface RejectionData {
   dateRange: string[];
@@ -24,12 +25,9 @@ interface RejectionData {
 }
 
 export function RejectionTrends() {
-  const [fromDate, setFromDate] = useState<Date | undefined>(new Date());
-  const [toDate, setToDate] = useState<Date | undefined>(new Date());
-  const [vendor, setVendor] = useState('all');
+  const { state, dispatch } = useAppState();
+  const { fromDate, toDate, vendor, rejectionStage, reportData } = state.rejectionTrends;
   const [vendors, setVendors] = useState<string[]>(['all']);
-  const [rejectionStage, setRejectionStage] = useState<'both' | 'vqc' | 'ft'>('both');
-  const [reportData, setReportData] = useState<RejectionData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -37,15 +35,15 @@ export function RejectionTrends() {
       try {
         const vendorList = await getVendors();
         setVendors(vendorList);
-        if (vendorList.length > 1) {
-            setVendor(vendorList[1]); // Select the first vendor by default
+        if (vendorList.length > 1 && vendor === 'all') {
+            dispatch({ type: 'SET_REJECTION_TRENDS_STATE', payload: { vendor: vendorList[1] } });
         }
       } catch (error: any) {
         toast.error(`Failed to fetch vendors: ${error.message}`);
       }
     };
     fetchVendors();
-  }, []);
+  }, [dispatch, vendor]);
 
   const handleLoadData = async () => {
     if (!fromDate || !toDate || !vendor) {
@@ -61,7 +59,7 @@ export function RejectionTrends() {
         rejectionStage: rejectionStage,
       };
       const data = await getRejectionTrends(config);
-      setReportData(data);
+      dispatch({ type: 'SET_REJECTION_TRENDS_STATE', payload: { reportData: data } });
       toast.success('Rejection trends data loaded successfully.');
     } catch (error: any) {
       toast.error(`Failed to load data: ${error.message}`);
@@ -84,15 +82,15 @@ export function RejectionTrends() {
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="space-y-2">
               <label className="text-sm">From Date</label>
-              <DatePicker date={fromDate} onDateChange={setFromDate} />
+              <DatePicker date={fromDate} onDateChange={(date) => dispatch({ type: 'SET_REJECTION_TRENDS_STATE', payload: { fromDate: date } })} />
             </div>
             <div className="space-y-2">
               <label className="text-sm">To Date</label>
-              <DatePicker date={toDate} onDateChange={setToDate} />
+              <DatePicker date={toDate} onDateChange={(date) => dispatch({ type: 'SET_REJECTION_TRENDS_STATE', payload: { toDate: date } })} />
             </div>
             <div className="space-y-2">
               <label className="text-sm">Vendor</label>
-              <Select value={vendor} onValueChange={setVendor}>
+              <Select value={vendor} onValueChange={(value) => dispatch({ type: 'SET_REJECTION_TRENDS_STATE', payload: { vendor: value } }) }>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {vendors.map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}
@@ -101,7 +99,7 @@ export function RejectionTrends() {
             </div>
             <div className="space-y-2">
               <label className="text-sm">Rejection Stage</label>
-              <Select value={rejectionStage} onValueChange={(value: 'both' | 'vqc' | 'ft') => setRejectionStage(value)}>
+              <Select value={rejectionStage} onValueChange={(value: 'both' | 'vqc' | 'ft') => dispatch({ type: 'SET_REJECTION_TRENDS_STATE', payload: { rejectionStage: value } }) }>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="both">Both</SelectItem>
@@ -128,7 +126,7 @@ export function RejectionTrends() {
               <Card key={stage}>
                 <CardContent className="pt-6">
                   <p className="text-sm text-muted-foreground mb-1">{stage}</p>
-                  <div className="text-3xl">{total}</div>
+                  <div className="text-3xl">{total as number}</div>
                 </CardContent>
               </Card>
             ))}
@@ -153,11 +151,11 @@ export function RejectionTrends() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {reportData.rejectionData.map((row, index) => (
+                    {reportData.rejectionData.map((row: any, index: number) => (
                       <TableRow key={index}>
                         <TableCell className="sticky left-0 z-10 bg-background">{row.stage}</TableCell>
                         <TableCell className="sticky left-[120px] z-10 bg-background">{row.rejection}</TableCell>
-                        {reportData.dateRange.map(date => (
+                        {reportData.dateRange.map((date: string) => (
                           <TableCell key={date} className={`text-center ${getCellColor(row.dateWiseData[date])}`}>
                             {row.dateWiseData[date] || '-'}
                           </TableCell>

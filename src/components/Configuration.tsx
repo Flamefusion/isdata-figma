@@ -7,29 +7,22 @@ import { Separator } from './ui/separator';
 import { Database, Sheet, Upload, FileText, Loader2, Trash2, Layers } from 'lucide-react';
 import { toast } from 'sonner';
 import { testDbConnection, createDbSchema, clearDb, testSheetsConnection } from '../services/api';
+import { useAppState } from '../context/AppStateContext';
 
 export function Configuration() {
-  const [googleSheetsConfig, setGoogleSheetsConfig] = useState({
-    serviceAccountJson: '',
-    serviceAccountFile: null as File | null,
-    serviceAccountPath: '',
-    vendorDataUrl: '',
-    vqcDataUrl: '',
-    ftDataUrl: ''
-  });
-  
+  const { state, dispatch } = useAppState();
+  const { googleSheetsConfig, postgresConfig } = state.configuration;
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const [postgresConfig, setPostgresConfig] = useState({
-    host: 'localhost',
-    port: '5432',
-    database: 'rings_production',
-    username: 'postgres',
-    password: ''
-  });
-
   const [isLoading, setIsLoading] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
+
+  const handleGoogleSheetsConfigChange = (field: string, value: any) => {
+    dispatch({ type: 'SET_CONFIGURATION_STATE', payload: { googleSheetsConfig: { ...googleSheetsConfig, [field]: value } } });
+  };
+
+  const handlePostgresConfigChange = (field: string, value: any) => {
+    dispatch({ type: 'SET_CONFIGURATION_STATE', payload: { postgresConfig: { ...postgresConfig, [field]: value } } });
+  };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -38,12 +31,17 @@ export function Configuration() {
         const reader = new FileReader();
         reader.onload = (e) => {
           const content = e.target?.result as string;
-          setGoogleSheetsConfig(prev => ({
-            ...prev,
-            serviceAccountFile: file,
-            serviceAccountPath: file.name,
-            serviceAccountJson: content
-          }));
+          dispatch({ 
+            type: 'SET_CONFIGURATION_STATE', 
+            payload: { 
+              googleSheetsConfig: { 
+                ...googleSheetsConfig, 
+                serviceAccountJson: content, 
+                serviceAccountFile: file, 
+                serviceAccountPath: file.name 
+              } 
+            }
+          });
         };
         reader.readAsText(file);
         
@@ -60,12 +58,17 @@ export function Configuration() {
   };
 
   const handleClearFile = () => {
-    setGoogleSheetsConfig(prev => ({
-      ...prev,
-      serviceAccountFile: null,
-      serviceAccountPath: '',
-      serviceAccountJson: ''
-    }));
+    dispatch({ 
+        type: 'SET_CONFIGURATION_STATE', 
+        payload: { 
+          googleSheetsConfig: { 
+            ...googleSheetsConfig, 
+            serviceAccountJson: '', 
+            serviceAccountFile: null, 
+            serviceAccountPath: '' 
+          } 
+        }
+    });
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -196,7 +199,7 @@ export function Configuration() {
                   <Upload className="h-4 w-4" />
                   Browse
                 </Button>
-                {googleSheetsConfig.serviceAccountFile && (
+                {googleSheetsConfig.serviceAccountPath && (
                   <Button 
                     type="button" 
                     variant="outline" 
@@ -209,12 +212,11 @@ export function Configuration() {
                 )}
               </div>
               
-              {googleSheetsConfig.serviceAccountFile && (
+              {googleSheetsConfig.serviceAccountPath && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground bg-green-50 p-2 rounded border">
                   <FileText className="h-4 w-4 text-green-600" />
                   <span>
-                    <strong>{googleSheetsConfig.serviceAccountFile.name}</strong> 
-                    ({(googleSheetsConfig.serviceAccountFile.size / 1024).toFixed(1)} KB)
+                    <strong>{googleSheetsConfig.serviceAccountPath}</strong>
                   </span>
                 </div>
               )}
@@ -228,7 +230,7 @@ export function Configuration() {
                 id="vendorUrl"
                 placeholder="https://docs.google.com/spreadsheets/..."
                 value={googleSheetsConfig.vendorDataUrl}
-                onChange={(e) => setGoogleSheetsConfig(prev => ({ ...prev, vendorDataUrl: e.target.value }))}
+                onChange={(e) => handleGoogleSheetsConfigChange('vendorDataUrl', e.target.value)}
               />
             </div>
 
@@ -238,7 +240,7 @@ export function Configuration() {
                 id="vqcUrl"
                 placeholder="https://docs.google.com/spreadsheets/..."
                 value={googleSheetsConfig.vqcDataUrl}
-                onChange={(e) => setGoogleSheetsConfig(prev => ({ ...prev, vqcDataUrl: e.target.value }))}
+                onChange={(e) => handleGoogleSheetsConfigChange('vqcDataUrl', e.target.value)}
               />
             </div>
 
@@ -248,7 +250,7 @@ export function Configuration() {
                 id="ftUrl"
                 placeholder="https://docs.google.com/spreadsheets/..."
                 value={googleSheetsConfig.ftDataUrl}
-                onChange={(e) => setGoogleSheetsConfig(prev => ({ ...prev, ftDataUrl: e.target.value }))}
+                onChange={(e) => handleGoogleSheetsConfigChange('ftDataUrl', e.target.value)}
               />
             </div>
           </div>
@@ -278,7 +280,7 @@ export function Configuration() {
                 id="host"
                 placeholder="localhost"
                 value={postgresConfig.host}
-                onChange={(e) => setPostgresConfig(prev => ({ ...prev, host: e.target.value }))}
+                onChange={(e) => handlePostgresConfigChange('host', e.target.value)}
               />
             </div>
 
@@ -288,7 +290,7 @@ export function Configuration() {
                 id="port"
                 placeholder="5432"
                 value={postgresConfig.port}
-                onChange={(e) => setPostgresConfig(prev => ({ ...prev, port: e.target.value }))}
+                onChange={(e) => handlePostgresConfigChange('port', e.target.value)}
               />
             </div>
 
@@ -298,7 +300,7 @@ export function Configuration() {
                 id="database"
                 placeholder="rings_production"
                 value={postgresConfig.database}
-                onChange={(e) => setPostgresConfig(prev => ({ ...prev, database: e.target.value }))}
+                onChange={(e) => handlePostgresConfigChange('database', e.target.value)}
               />
             </div>
 
@@ -308,7 +310,7 @@ export function Configuration() {
                 id="username"
                 placeholder="postgres"
                 value={postgresConfig.username}
-                onChange={(e) => setPostgresConfig(prev => ({ ...prev, username: e.target.value }))}
+                onChange={(e) => handlePostgresConfigChange('username', e.target.value)}
               />
             </div>
 
@@ -319,7 +321,7 @@ export function Configuration() {
                 type="password"
                 placeholder="Enter database password"
                 value={postgresConfig.password}
-                onChange={(e) => setPostgresConfig(prev => ({ ...prev, password: e.target.value }))}
+                onChange={(e) => handlePostgresConfigChange('password', e.target.value)}
               />
             </div>
           </div>

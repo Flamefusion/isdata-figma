@@ -3,11 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { DatePicker } from './ui/date-picker';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
-import { Download, FileText, TrendingUp, Info, CheckCircle2, XCircle, Clock, AlertTriangle, Users, Loader2 } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { FileText, Users, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { getVendors, getDailyReport } from '../services/api';
+import { useAppState } from '../context/AppStateContext';
 
 // Type for the report data, based on backend response
 interface DailyReport {
@@ -35,10 +36,9 @@ interface DailyReport {
 }
 
 export function Report() {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [selectedVendor, setSelectedVendor] = useState('all');
+  const { state, dispatch } = useAppState();
+  const { selectedDate, selectedVendor, reportData } = state.report;
   const [vendors, setVendors] = useState<string[]>(['all']);
-  const [reportData, setReportData] = useState<DailyReport | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -65,11 +65,11 @@ export function Report() {
         vendor: selectedVendor,
       };
       const data = await getDailyReport(config);
-      setReportData(data);
+      dispatch({ type: 'SET_REPORT_STATE', payload: { reportData: data } });
       toast.success('Report generated successfully');
     } catch (error: any) {
       toast.error(`Failed to generate report: ${error.message}`);
-      setReportData(null);
+      dispatch({ type: 'SET_REPORT_STATE', payload: { reportData: null } });
     } finally {
       setIsLoading(false);
     }
@@ -82,11 +82,11 @@ export function Report() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <label className="text-sm">Select Date</label>
-              <DatePicker date={selectedDate} onDateChange={setSelectedDate} />
+              <DatePicker date={selectedDate} onDateChange={(date) => dispatch({ type: 'SET_REPORT_STATE', payload: { selectedDate: date } })} />
             </div>
             <div className="space-y-2">
               <label className="text-sm">Select Vendor</label>
-              <Select value={selectedVendor} onValueChange={setSelectedVendor}>
+              <Select value={selectedVendor} onValueChange={(value) => dispatch({ type: 'SET_REPORT_STATE', payload: { selectedVendor: value } }) }>
                 <SelectTrigger>
                   <div className="flex items-center gap-2">
                     <Users className="w-4 h-4" />

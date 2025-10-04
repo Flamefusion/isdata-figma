@@ -3,16 +3,17 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { DatePicker } from './ui/date-picker';
 import { Label } from './ui/label';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Package, CheckCircle, XCircle, Home as HomeIcon, Loader2 } from 'lucide-react';
+import { Home as HomeIcon, Loader2 } from 'lucide-react';
 import { getHomeSummary } from '../services/api';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { useAppState } from '../context/AppStateContext';
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8884d8', '#ffc658'];
 
 export function Home() {
-  const [startDate, setStartDate] = useState<Date | undefined>(new Date());
-  const [endDate, setEndDate] = useState<Date | undefined>(new Date());
+  const { state, dispatch } = useAppState();
+  const { startDate, endDate } = state.home;
   const [summaryData, setSummaryData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -53,11 +54,11 @@ export function Home() {
         <div className="flex items-center justify-center gap-8 mb-8">
           <div className="flex items-center gap-2">
             <Label>Start Date</Label>
-            <DatePicker date={startDate} onDateChange={setStartDate} />
+            <DatePicker date={startDate} onDateChange={(date) => dispatch({ type: 'SET_HOME_STATE', payload: { startDate: date } })} />
           </div>
           <div className="flex items-center gap-2">
             <Label>End Date</Label>
-            <DatePicker date={endDate} onDateChange={setEndDate} />
+            <DatePicker date={endDate} onDateChange={(date) => dispatch({ type: 'SET_HOME_STATE', payload: { endDate: date } })} />
           </div>
         </div>
       </div>

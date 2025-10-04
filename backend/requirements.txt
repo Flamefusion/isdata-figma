@@ -1,0 +1,12 @@
+Flask
+Flask-CORS
+psycopg2-binary
+pandas
+gspread
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+python-dotenv
+openpyxl
+Werkzeug
+pyinstaller

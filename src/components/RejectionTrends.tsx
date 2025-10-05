@@ -145,13 +145,12 @@ export function RejectionTrends() {
                 From {reportData.dateFrom} to {reportData.dateTo}
               </p>
             </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[600px]">
-                <Table>
+            <CardContent className="overflow-x-auto">
+                <Table className="whitespace-nowrap">
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="sticky left-0 z-20 bg-background w-[120px]">Stage</TableHead>
-                      <TableHead className="sticky left-[120px] z-20 bg-background w-[300px]">Rejection Type</TableHead>
+                      <TableHead className="left-0 z-20 bg-background w-[120px]">Stage</TableHead>
+                      <TableHead className="left-[120px] z-20 bg-background w-[300px]">Rejection Type</TableHead>
                       {reportData.dateRange.map(date => <TableHead key={date} className="text-center">{format(new Date(date), 'MMM dd')}</TableHead>)}
                       <TableHead className="text-center">Total</TableHead>
                     </TableRow>
@@ -159,8 +158,8 @@ export function RejectionTrends() {
                   <TableBody>
                     {reportData.rejectionData.map((row: any, index: number) => (
                       <TableRow key={index}>
-                        <TableCell className="sticky left-0 z-10 bg-background">{row.stage}</TableCell>
-                        <TableCell className="sticky left-[120px] z-10 bg-background">{row.rejection}</TableCell>
+                        <TableCell className="left-0 z-10 bg-background">{row.stage}</TableCell>
+                        <TableCell className="left-[120px] z-10 bg-background">{row.rejection}</TableCell>
                         {reportData.dateRange.map((date: string) => (
                           <TableCell key={date} className={`text-center ${getCellColor(row.dateWiseData[date])}`}>
                             {row.dateWiseData[date] || '-'}
@@ -171,7 +170,6 @@ export function RejectionTrends() {
                     ))}
                   </TableBody>
                 </Table>
-              </ScrollArea>
             </CardContent>
           </Card>
         </>

@@ -133,7 +133,7 @@ export function Migration() {
                 <CardTitle>Live Logs</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="bg-gray-900 text-white font-mono text-xs rounded p-4 h-96 overflow-y-auto">
+                <div className="bg-muted text-muted font-mono text-xs rounded p-4 h-96 overflow-y-auto">
                   {logs.length > 0 ? logs.map((log, index) => (
                     <div key={index}>{log}</div>
                   )) : (

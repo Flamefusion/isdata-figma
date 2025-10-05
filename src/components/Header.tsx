@@ -18,8 +18,8 @@ export function Header({ username, onSettingsClick, onLoginClick, isLoggedIn }: 
           <Database className="h-6 w-6 text-blue-600" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Rings Dashboard</h1>
-          <p className="text-sm text-gray-600">Production Data Management System</p>
+          <h1 className="text-2xl font-bold text-foreground">Rings Dashboard</h1>
+          <p className="text-sm text-foreground">Production Data Management System</p>
         </div>
       </div>
 

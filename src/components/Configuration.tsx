@@ -350,7 +350,7 @@ export function Configuration() {
             <CardTitle>Logs</CardTitle>
           </CardHeader>
           <CardContent>
-            <pre className="bg-gray-100 p-4 rounded-md text-sm max-h-60 overflow-auto">
+            <pre className="bg-muted text-muted-foreground p-4 rounded-md text-sm max-h-60 overflow-auto">
               {logs.join('\n')}
             </pre>
           </CardContent>

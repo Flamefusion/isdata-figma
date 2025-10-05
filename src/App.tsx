@@ -133,7 +133,7 @@ export function App() {
           ) : (
             <div className="flex items-center justify-center min-h-[400px]">
               <div className="text-center space-y-4">
-                <h2 className="text-2xl font-semibold">Welcome to Rings Dashboard</h2>
+                <h2 className="text-2xl font-semibold text-foreground">Welcome to Rings Dashboard</h2>
                 <p className="text-muted-foreground">Please log in to access the production dashboard</p>
                 <button
                   onClick={() => setIsLoginModalOpen(true)}

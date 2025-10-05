@@ -86,19 +86,44 @@ export function Home() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
-              <CardHeader><CardTitle>Ring Status Overview</CardTitle></CardHeader>
+              <CardHeader><CardTitle>VQC Status Overview</CardTitle></CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie data={summaryData.ringStatusData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
-                      {summaryData.ringStatusData.map((entry: any, index: number) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+                {summaryData.vqcRingStatusData && summaryData.vqcRingStatusData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie data={summaryData.vqcRingStatusData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                        {summaryData.vqcRingStatusData.map((entry: any, index: number) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-[300px]"><p>No data available</p></div>
+                )}
               </CardContent>
             </Card>
+            <Card>
+              <CardHeader><CardTitle>FT Status Overview</CardTitle></CardHeader>
+              <CardContent>
+                {summaryData.ftRingStatusData && summaryData.ftRingStatusData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie data={summaryData.ftRingStatusData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                        {summaryData.ftRingStatusData.map((entry: any, index: number) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-[300px]"><p>No data available</p></div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6">
             <Card>
               <CardHeader><CardTitle>Rejection Reasons</CardTitle></CardHeader>
               <CardContent>

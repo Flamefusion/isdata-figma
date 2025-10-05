@@ -50,7 +50,7 @@ type Action =
 // 4. Define the reducer
 const initialState: AppState = {
   home: {
-    startDate: new Date(),
+    startDate: new Date(new Date().setDate(new Date().getDate() - 7)),
     endDate: new Date(),
   },
   search: {

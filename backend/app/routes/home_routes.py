@@ -40,14 +40,24 @@ def get_home_summary():
             logs.append(f"Error in Ring Lifecycle query: {e}")
             raise
 
-        # Ring Status Overview
+        # VQC Ring Status Overview
         try:
-            logs.append("Executing Ring Status Overview query...")
-            cursor.execute("""SELECT vqc_status, COUNT(*) FROM rings WHERE date BETWEEN %s AND %s AND vqc_status IS NOT NULL GROUP BY vqc_status;""", (start_date, end_date))
-            ring_status_data = cursor.fetchall()
-            logs.append("Ring Status Overview query successful.")
+            logs.append("Executing VQC Ring Status Overview query...")
+            cursor.execute("""SELECT UPPER(vqc_status), COUNT(*) FROM rings WHERE date BETWEEN %s AND %s AND vqc_status IS NOT NULL AND vqc_status != '' GROUP BY UPPER(vqc_status);""", (start_date, end_date))
+            vqc_ring_status_data = cursor.fetchall()
+            logs.append("VQC Ring Status Overview query successful.")
         except Exception as e:
-            logs.append(f"Error in Ring Status Overview query: {e}")
+            logs.append(f"Error in VQC Ring Status Overview query: {e}")
+            raise
+
+        # FT Ring Status Overview
+        try:
+            logs.append("Executing FT Ring Status Overview query...")
+            cursor.execute("""SELECT UPPER(ft_status), COUNT(*) FROM rings WHERE date BETWEEN %s AND %s AND ft_status IS NOT NULL AND ft_status != '' GROUP BY UPPER(ft_status);""", (start_date, end_date))
+            ft_ring_status_data = cursor.fetchall()
+            logs.append("FT Ring Status Overview query successful.")
+        except Exception as e:
+            logs.append(f"Error in FT Ring Status Overview query: {e}")
             raise
 
         # Rejection Reasons
@@ -124,8 +134,10 @@ def get_home_summary():
                 'vqc_received': vqc_received, 'vqc_closed': vqc_closed, 'vqc_pending': vqc_received - vqc_closed,
                 'ft_received': ft_received, 'ft_closed': ft_closed, 'ft_pending': ft_received - ft_closed
             }
-            total_rings = sum(row[1] for row in ring_status_data)
-            formatted_ring_status = [{'name': row[0], 'value': row[1], 'percent': (row[1] / total_rings) * 100 if total_rings > 0 else 0} for row in ring_status_data]
+            total_vqc_rings = sum(row[1] for row in vqc_ring_status_data)
+            formatted_vqc_ring_status = [{'name': row[0], 'value': row[1], 'percent': (row[1] / total_vqc_rings) * 100 if total_vqc_rings > 0 else 0} for row in vqc_ring_status_data]
+            total_ft_rings = sum(row[1] for row in ft_ring_status_data)
+            formatted_ft_ring_status = [{'name': row[0], 'value': row[1], 'percent': (row[1] / total_ft_rings) * 100 if total_ft_rings > 0 else 0} for row in ft_ring_status_data]
             formatted_rejection_reason = [{'name': row[0], 'value': row[1]} for row in rejection_reason_data]
             formatted_ring_size = [{'name': row[0], 'value': row[1]} for row in ring_size_data]
             formatted_ring_sku = [{'name': row[0], 'value': row[1]} for row in ring_sku_data]
@@ -139,7 +151,8 @@ def get_home_summary():
 
         return jsonify({
             'ringLifecycleData': formatted_ring_lifecycle,
-            'ringStatusData': formatted_ring_status,
+            'vqcRingStatusData': formatted_vqc_ring_status,
+            'ftRingStatusData': formatted_ft_ring_status,
             'rejectionReasonData': formatted_rejection_reason,
             'ringSizeData': formatted_ring_size,
             'ringSkuData': formatted_ring_sku,

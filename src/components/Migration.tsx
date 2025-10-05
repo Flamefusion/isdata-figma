@@ -4,8 +4,10 @@ import { Button } from './ui/button';
 import { Play, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { startMigration } from '../services/api';
+import { useAppState } from '../context/AppStateContext';
 
 export function Migration() {
+  const { state } = useAppState();
   const [isMigrating, setIsMigrating] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
   const [migrationStatus, setMigrationStatus] = useState<'idle' | 'running' | 'success' | 'failure'>('idle');
@@ -26,16 +28,15 @@ export function Migration() {
     toast.success('Migration started!');
 
     try {
-      // This is a placeholder for getting the config.
-      // In a real app, you'd get this from a config context or local storage.
-      const mockConfig = {
-        serviceAccountContent: {}, // You would need to get this from your config state
-        vendorDataUrl: '',
-        vqcDataUrl: '',
-        ftDataUrl: '',
+      const { googleSheetsConfig } = state.configuration;
+      const config = {
+        serviceAccountContent: JSON.parse(googleSheetsConfig.serviceAccountJson),
+        vendorDataUrl: googleSheetsConfig.vendorDataUrl,
+        vqcDataUrl: googleSheetsConfig.vqcDataUrl,
+        ftDataUrl: googleSheetsConfig.ftDataUrl,
       };
 
-      await startMigration(mockConfig, (log) => {
+      await startMigration(config, (log) => {
         setLogs(prevLogs => [...prevLogs, log]);
       });
 

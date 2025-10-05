@@ -19,7 +19,7 @@ interface User {
   role: string;
 }
 
-export default function App() {
+export function App() {
   const [activeTab, setActiveTab] = useState('home');
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);

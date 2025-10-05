@@ -122,6 +122,12 @@ export function RejectionTrends() {
       {reportData && (
         <>
           <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+            <Card>
+              <CardContent className="pt-6">
+                <p className="text-sm text-muted-foreground mb-1">Total</p>
+                <div className="text-3xl">{reportData.summary.totalRejections}</div>
+              </CardContent>
+            </Card>
             {Object.entries(reportData.summary.stageWiseTotals).map(([stage, total]) => (
               <Card key={stage}>
                 <CardContent className="pt-6">

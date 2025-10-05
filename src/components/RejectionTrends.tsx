@@ -70,9 +70,9 @@ export function RejectionTrends() {
 
   const getCellColor = (count: number) => {
     if (count === 0) return 'bg-transparent';
-    if (count <= 3) return 'bg-green-100 dark:bg-green-900/30';
-    if (count <= 7) return 'bg-yellow-100 dark:bg-yellow-900/30';
-    return 'bg-red-100 dark:bg-red-900/30';
+    if (count <= 3) return 'bg-green-500/10';
+    if (count <= 7) return 'bg-yellow-500/10';
+    return 'bg-red-500/10';
   };
 
   return (

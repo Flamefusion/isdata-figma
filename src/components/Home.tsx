@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { useAppState } from '../context/AppStateContext';
 
-const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8884d8', '#ffc658'];
+const COLORS = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)'];
 
 export function Home() {
   const { state, dispatch } = useAppState();

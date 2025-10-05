@@ -26,9 +26,9 @@ def get_home_summary():
             logs.append("Executing Ring Lifecycle query...")
             cursor.execute("""SELECT 
                 COUNT(CASE WHEN vqc_status IS NOT NULL THEN 1 END) as vqc_received,
-                COUNT(CASE WHEN vqc_status IN ('ACCEPTED', 'WABI SABI', 'SCRAP', 'RT CONVERSION') THEN 1 END) as vqc_closed,
+                COUNT(CASE WHEN UPPER(vqc_status) IN ('ACCEPTED', 'WABI SABI', 'SCRAP', 'RT CONVERSION') THEN 1 END) as vqc_closed,
                 COUNT(CASE WHEN ft_status IS NOT NULL THEN 1 END) as ft_received,
-                COUNT(CASE WHEN ft_status IN ('ACCEPTED', 'WABI SABI', 'SCRAP', 'RT CONVERSION') THEN 1 END) as ft_closed
+                COUNT(CASE WHEN UPPER(ft_status) IN ('ACCEPTED', 'WABI SABI', 'SCRAP', 'RT CONVERSION') THEN 1 END) as ft_closed
                 FROM rings WHERE date BETWEEN %s AND %s;""", (start_date, end_date))
             lifecycle_data = cursor.fetchone()
             if lifecycle_data:
@@ -93,7 +93,7 @@ def get_home_summary():
         # QC Person Yield
         try:
             logs.append("Executing QC Person Yield query...")
-            cursor.execute("""SELECT qc_person, COUNT(*) as total, COUNT(CASE WHEN vqc_status = 'ACCEPTED' THEN 1 END) as accepted FROM rings WHERE date BETWEEN %s AND %s AND qc_person IS NOT NULL AND qc_person != '' GROUP BY qc_person;""", (start_date, end_date))
+            cursor.execute("""SELECT qc_person, COUNT(*) as total, COUNT(CASE WHEN UPPER(vqc_status) = 'ACCEPTED' THEN 1 END) as accepted FROM rings WHERE date BETWEEN %s AND %s AND qc_person IS NOT NULL AND qc_person != '' GROUP BY qc_person;""", (start_date, end_date))
             qc_person_yield_data = cursor.fetchall()
             logs.append("QC Person Yield query successful.")
         except Exception as e:
@@ -104,10 +104,10 @@ def get_home_summary():
         try:
             logs.append("Executing MO Summary query...")
             cursor.execute("""SELECT mo_number, 
-                COUNT(CASE WHEN vqc_status = 'ACCEPTED' THEN 1 END) as accepted,
-                COUNT(CASE WHEN vqc_status = 'WABI SABI' THEN 1 END) as wabi_sabi,
-                COUNT(CASE WHEN vqc_status = 'SCRAP' THEN 1 END) as scrap,
-                COUNT(CASE WHEN vqc_status = 'RT CONVERSION' THEN 1 END) as rt_conversion
+                COUNT(CASE WHEN UPPER(vqc_status) = 'ACCEPTED' THEN 1 END) as accepted,
+                COUNT(CASE WHEN UPPER(vqc_status) = 'WABI SABI' THEN 1 END) as wabi_sabi,
+                COUNT(CASE WHEN UPPER(vqc_status) = 'SCRAP' THEN 1 END) as scrap,
+                COUNT(CASE WHEN UPPER(vqc_status) = 'RT CONVERSION' THEN 1 END) as rt_conversion
                 FROM rings WHERE date BETWEEN %s AND %s GROUP BY mo_number;""", (start_date, end_date))
             mo_summary_data = cursor.fetchall()
             logs.append("MO Summary query successful.")
